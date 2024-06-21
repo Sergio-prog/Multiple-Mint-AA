@@ -12,7 +12,8 @@ export const OpStatus = ({
   isSendUserOperationError: Error | null;
 }) => {
   if (isSendUserOperationError) {
-    console.log(isSendUserOperationError)
+    console.log(isSendUserOperationError);
+    console.error(isSendUserOperationError);
     return <div className="text-center">An error occurred. Try again!</div>;
   }
 

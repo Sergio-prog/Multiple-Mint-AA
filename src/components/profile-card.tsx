@@ -19,12 +19,14 @@ import {
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { encodeFunctionData, Hex, maxUint256, zeroAddress } from "viem";
+import { encodeFunctionData, etherUnits, Hex, formatEther, maxUint256, zeroAddress } from "viem";
 import { OpStatus } from "./op-status";
 import { DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import erc721A_abi from "../abis/ERC721A_abi.json";
 import erc165_abi from "../abis/ERC165.json";
 import erc1155_abi from "../abis/ERC1155_abi.json";
+import uniswapV3router_abi from "../abis/UniswapV3Router_abi.json";
+import erc20_abi from "../abis/ERC20_abi.json";
 import { Dialog } from "./ui/Dialog";
 
 export const ProfileCard = () => {
@@ -89,6 +91,38 @@ export const ProfileCard = () => {
     // send the user operation
     sendUserOperation({
       uo: { target, data, value: value ? BigInt(value) : 0n },
+    });
+  };
+
+  const swap = () => {
+    const target = "0x101F443B4d1b059569D643917553c771E1b9663E";
+    const weth_address = "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73";
+    const usdc_address = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
+
+    // const approveData = encodeFunctionData({
+    //   abi: erc20_abi,
+    //   functionName: "approve",
+    //   args: []
+    // });
+
+    const value = 0.001;
+
+    const data = encodeFunctionData({
+      abi: uniswapV3router_abi,
+      functionName: "exactInputSingle",
+      args: [{
+        "tokenIn": weth_address,
+        "tokenOut": usdc_address,
+        "fee": 3000,
+        "recipient": address,
+        "amountIn": BigInt(value * 10 ** 18),
+        "amountOutMinimum": 0,
+        "sqrtPriceLimitX96": 0
+      }],
+    })
+
+    sendUserOperation({
+      uo: { target, data, value: BigInt(value * 10 ** 18) },
     });
   };
 
@@ -211,6 +245,9 @@ export const ProfileCard = () => {
 
           <Button type="submit" disabled={isSendingUserOperation}>
             Send Transaction
+          </Button>
+          <Button type="button" onClick={swap} disabled={isSendingUserOperation}>
+            Test swap
           </Button>
           <Button
             type="button"

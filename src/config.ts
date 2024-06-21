@@ -58,7 +58,7 @@ export const nfts: NftType[] = [
     name: "Roaring Kitty"
   },
   {
-    contractAddress: "0x95F296DA27846847c609E626D9aD948A5F25f7C3",
+    contractAddress: "0x8c8Bb678BF49b6E612B808A6BfD73aAc32bFEd61",
     image: "https://ipfs.io/ipfs/bafybeihm3fhykxp7ah44zwe3wezz2u7exgszxc7yww5thvztbbppgepsge/4041.png",
     symbol: "Test",
     name: "Retarded"
