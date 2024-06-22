@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent } from "react";
+import React, { FormEvent, useEffect } from "react";
 import {
   useAccount,
   useLogout,
@@ -15,6 +15,8 @@ import {
   accountClientOptions as opts,
   nfts,
   NftType,
+  tokenToCheck,
+  Token,
 } from "@/config";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -35,11 +37,13 @@ export const ProfileCard = () => {
   const { logout } = useLogout();
   const enum pagesEnum {
     transactions = "transaction",
-    nfts = "nfts"
+    nfts = "nfts",
+    balances = "balances",
   }
   const [page, setPage] = React.useState<pagesEnum | null>(pagesEnum.transactions)
   const [checked, setChecked] = React.useState<number[]>([0]);
   const [openMint, setOpenMint] = React.useState(false);
+  const [tokensInfo, setTokensInfo] = React.useState<Token[]>([]);
   const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
   const handleToggle = (value: number) => () => {
@@ -181,7 +185,44 @@ export const ProfileCard = () => {
       uo: operations
     });
   }
+
+  const fetchTokenIfnfo = async (tokenAddress: string) => {    
+      if (!client) {
+        return;
+      }
+
+      let name: string, symbol: string;
+      
+      if (tokenAddress === zeroAddress) {
+        [name, symbol] = ["Ethereum", "ETH"];
+      } else {
+        name = await client.readContract({
+          abi: erc20_abi,
+          address: tokenAddress as Hex,
+          functionName: "name",
+          args: []
+        }) as string;
+        
+        symbol = await client.readContract({
+          abi: erc20_abi,
+          address: tokenAddress as Hex,
+          functionName: "symbol"
+        }) as string;
+    }
+    
+    console.log(name, symbol);
+    
+    const token: Token = { name, symbol };
+    tokensInfo.push(token);
+  }
   // [!endregion sending-user-op]
+
+  useEffect(() => {
+    tokenToCheck.forEach((token) => {
+      fetchTokenIfnfo(token);
+    });
+    console.log(tokenToCheck, tokensInfo)
+  }, []);
 
   return (
     <Card>
@@ -205,23 +246,13 @@ export const ProfileCard = () => {
             <Button variant={page === pagesEnum.nfts ? "default" : "secondary"} onClick={() => setPage(pagesEnum.nfts)}>
               View NFTs
             </Button>
-            
+            <Button variant={page === pagesEnum.balances ? "default" : "secondary"} onClick={() => setPage(pagesEnum.balances)}>
+              Balances
+            </Button>
           </div>
 
           {page === pagesEnum.transactions && (
           <form className="flex flex-col gap-4" onSubmit={send}>
-            <p className="rounded-md bg-slate-100 p-2 text-center font-light dark:bg-slate-800">
-              These default values will mint you 100{" "}
-              <a
-                href={`${chain.blockExplorers?.default.url}/address/0x7d29eaA4F8bc836746B63FAd5180069e824DE291`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-center text-[#363FF9] hover:underline dark:text-[#b6b9f9]"
-              >
-                Minty token
-              </a>
-              ! 🎉
-            </p>
             <div className="flex items-center gap-2">
               <label className="w-12">To:</label>
               <Input
@@ -343,6 +374,31 @@ export const ProfileCard = () => {
                   </Button>
               </DialogActions>
             </Dialog>
+          </div>
+        )}
+
+        {page === pagesEnum.balances && (
+          <div>
+            <List sx={{ width: '100%', maxWidth: 500 }}>
+              {
+              tokensInfo.map((token, index) => {
+                console.log(token);
+                const {symbol, name} = token;
+
+                return (
+                  <ListItem
+                    key={index}
+                    disablePadding
+                  >
+                    <ListItemButton selected={true} role={undefined}>
+                      <ListItemText sx={
+                        {'& .MuiTypography-body2': {color: 'white'}, '& .MuiTypography-body1': {color: 'white'}}
+                        } primary={name} secondary={<span color="white">{symbol}</span>}></ListItemText>
+                    </ListItemButton>
+                  </ListItem>
+                )
+              })}
+            </List>
           </div>
         )}
 

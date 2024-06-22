@@ -64,3 +64,13 @@ export const nfts: NftType[] = [
     name: "Retarded"
   }
 ]
+
+export type Token = {
+  symbol: string,
+  name: string,
+}
+
+export const tokenToCheck: string[] = [
+  "0x0000000000000000000000000000000000000000",
+  "0x7d29eaA4F8bc836746B63FAd5180069e824DE291",
+]
